@@ -1,12 +1,17 @@
 {
-  "name": "doubleclick-ticketing-system",
+  "name": "@support-app/frontend",
   "private": true,
-  "version": "0.0.2",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "start": "vite preview",
     "preview": "vite preview",
+    "type-check": "tsc --noEmit",
+    "lint": "echo 'No linting configured yet'",
+    "test": "echo 'No tests configured yet'",
+    "clean": "rimraf dist",
     "server": "node server/index.js"
   },
   "dependencies": {
@@ -41,6 +46,7 @@
     "@vitejs/plugin-react": "^4.0.3",
     "autoprefixer": "^10.4.14",
     "postcss": "^8.4.24",
+    "rimraf": "^5.0.0",
     "tailwindcss": "^3.3.0",
     "typescript": "^5.0.2",
     "vite": "^4.4.5"

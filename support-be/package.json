@@ -1,12 +1,19 @@
 {
-  "name": "dcc-ticketing",
+  "name": "@support-app/backend",
   "version": "1.0.0",
-  "description": "This is back-end of DCC Ticketing System.",
-  "main": "index.js",
+  "description": "Backend API for DCC Ticketing System",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "nodemon --exec ts-node -r tsconfig-paths/register src/index.ts",
+    "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/index.ts",
     "build": "tsc",
-    "serve": "node dist/index.js",
+    "start": "node dist/index.js",
+    "type-check": "tsc --noEmit",
+    "lint": "echo 'No linting configured yet'",
+    "test": "echo 'No tests configured yet'",
+    "clean": "rimraf dist",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "ts-node prisma/seed.clean.ts && ts-node prisma/seed.create.ts",
     "seed-create": "ts-node prisma/seed.create.ts",
     "seed-clean": "ts-node prisma/seed.clean.ts",
     "seed": "ts-node prisma/seed.clean.ts && ts-node prisma/seed.create.ts"
@@ -31,6 +38,7 @@
     "cross-env": "^7.0.3",
     "express": "^5.1.0",
     "prisma": "^6.13.0",
+    "rimraf": "^5.0.0",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.3"
