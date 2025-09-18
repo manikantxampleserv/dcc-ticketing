@@ -41,18 +41,22 @@ The DCC Ticketing System is designed to manage customer support tickets, user ma
 
 ```bash
 git clone <repository-url>
-cd dcc-ticketing-system
+cd SupportApp
 ```
 
-### 2. Install Dependencies
+### 2. Install Dependencies (Monorepo)
 
 ```bash
+# Recommended: install from the monorepo root (installs all workspaces)
 npm install
+
+# Or install only this workspace
+npm install -w support-be
 ```
 
 ### 3. Environment Setup
 
-Create a `.env` file in the root directory:
+Create a `.env` file in the backend package directory: `support-be/.env`
 
 ```env
 # Database
@@ -73,26 +77,33 @@ LOG_LEVEL=info
 
 ```bash
 # Generate Prisma Client
-npx prisma generate
+npx prisma generate -w support-be
 
 # Run database migrations
-npx prisma migrate dev
+npx prisma migrate dev -w support-be
 
 # (Optional) Seed the database
-npx prisma db seed
+npx prisma db seed -w support-be
 ```
 
 ### 5. Start the Server
 
 ```bash
 # Development mode
-npm run dev
+npm run dev -w support-be
 
 # Production mode
-npm start
+npm start -w support-be
 ```
 
 The server will start at `http://localhost:4000`
+
+### Turborepo Tips
+
+- Run only backend tasks with Turborepo filter:
+  - `npx turbo run dev --filter=@support-app/backend`
+  - `npx turbo run build --filter=@support-app/backend`
+  - `npx turbo run type-check --filter=@support-app/backend`
 
 ## 📚 API Documentation
 

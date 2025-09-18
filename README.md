@@ -15,6 +15,47 @@ SupportApp/
 └── support.code-workspace  # VS Code workspace configuration
 ```
 
+## 🧩 Monorepo with Turborepo
+
+This repository is managed with Turborepo and npm workspaces.
+
+- All workspace packages live in `support-be/` and `support-fe/` as defined in the root `package.json` `workspaces` field.
+- The pipeline is configured in `turbo.json`.
+
+### Install (from repo root)
+
+```bash
+npm install
+```
+
+### Common Commands (from repo root)
+
+- `npm run dev` — Runs `turbo dev` to start all apps that have a `dev` script (backend + frontend).
+- `npm run build` — Runs `turbo build` across workspaces with proper dependency ordering and caching.
+- `npm run start` — Runs `turbo start` (each app’s `start` after it’s built).
+- `npm run lint` — Runs `turbo lint`.
+- `npm run type-check` — Runs TypeScript checks via `turbo type-check`.
+- `npm run test` — Runs tests via `turbo test`.
+- `npm run clean` — Cleans build artifacts via `turbo clean`.
+
+### Run a Single Package
+
+- With npm workspaces:
+  - Backend: `npm run dev -w support-be`
+  - Frontend: `npm run dev -w support-fe`
+- With Turborepo filters:
+  - Backend: `npx turbo run dev --filter=@support-app/backend`
+  - Frontend: `npx turbo run dev --filter=@support-app/frontend`
+
+### Pipeline Highlights (`turbo.json`)
+
+- `build` depends on upstream `^build` and caches outputs like `dist/**` and `build/**`.
+- `dev` and `start` are marked `persistent: true` and do not use cache.
+- `lint`, `type-check`, and `test` depend on upstream builds.
+- Global dependencies include environment files: `**/.env`, `**/.env.*`.
+
+Turborepo provides incremental and remote/local caching to speed up repeated tasks. The cache directory lives at `.turbo/` (ignored by Git per `.gitignore`).
+
 ## 🎯 Overview
 
 The SupportApp is designed to manage customer support tickets, user management, agent assignments, and ticket lifecycle operations. It provides:
