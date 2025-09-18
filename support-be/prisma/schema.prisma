@@ -1,0 +1,435 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model users {
+  id                                       Int                  @id @default(autoincrement())
+  username                                 String               @unique @db.NVarChar(100)
+  email                                    String               @unique @db.NVarChar(255)
+  password_hash                            String               @db.NVarChar(255)
+  first_name                               String               @db.NVarChar(100)
+  last_name                                String               @db.NVarChar(100)
+  phone                                    String?              @db.NVarChar(50)
+  avatar                                   String?              @db.NVarChar(500)
+  is_active                                Boolean?             @default(true)
+  last_login_at                            DateTime?
+  created_at                               DateTime?            @default(now(), map: "DF__Users__CreatedAt__00DF2177")
+  updated_at                               DateTime?            @default(now(), map: "DF__Users__UpdatedAt__01D345B0")
+  created_by                               Int?
+  role_id                                  Int
+  department_id                            Int
+  agents                                   agents[]
+  ticket_allocations_allocated_by_to_users ticket_allocations[] @relation("TicketAllocations_AllocatedByToUsers")
+  ticket_allocations_from_user_id_to_users ticket_allocations[] @relation("TicketAllocations_FromUserIDToUsers")
+  ticket_allocations_to_user_id_to_users   ticket_allocations[] @relation("TicketAllocations_ToUserIDToUsers")
+  ticket_attachments                       ticket_attachments[]
+  ticket_merges                            ticket_merges[]
+  ticket_reopens                           ticket_reopens[]
+  tickets                                  tickets[]
+  user_permissions_granted_by_to_users     user_permissions[]   @relation("UserPermissions_GrantedByToUsers")
+  user_permissions_user_id_to_users        user_permissions[]   @relation("UserPermissions_UserIDToUsers")
+  user_sessions                            user_sessions[]
+  users                                    users?               @relation("UsersToUsers", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  other_users                              users[]              @relation("UsersToUsers")
+  user_department                          department?          @relation(fields: [department_id], references: [id], onUpdate: NoAction)
+  user_role                                role                 @relation(fields: [role_id], references: [id], onUpdate: NoAction)
+
+  @@index([email])
+  @@index([is_active])
+  @@index([username])
+}
+
+model user_sessions {
+  id            Int       @id @default(autoincrement())
+  user_id       Int
+  session_token String    @unique @db.NVarChar(255)
+  ip_address    String?   @db.NVarChar(45)
+  user_agent    String?   @db.NVarChar(500)
+  expires_at    DateTime
+  created_at    DateTime? @default(now(), map: "DF__UserSessi__Creat__0697FACD")
+  users         users     @relation(fields: [user_id], references: [id], onUpdate: NoAction)
+
+  @@index([expires_at])
+  @@index([session_token])
+  @@index([user_id])
+}
+
+model user_permissions {
+  id                                         Int       @id @default(autoincrement())
+  user_id                                    Int
+  permission                                 String    @db.NVarChar(100)
+  granted_by                                 Int
+  granted_at                                 DateTime? @default(now(), map: "DF__UserPermi__Grant__251C81ED")
+  users_user_permissions_granted_by_to_users users     @relation("UserPermissions_GrantedByToUsers", fields: [granted_by], references: [id], onUpdate: NoAction)
+  users_user_permissions_user_id_to_users    users     @relation("UserPermissions_UserIDToUsers", fields: [user_id], references: [id], onUpdate: NoAction)
+
+  @@unique([user_id, permission])
+}
+
+model role {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.NVarChar(100)
+  is_active  String    @default("Y") @db.Char(1)
+  created_at DateTime? @default(now())
+  updated_at DateTime? @default(now())
+  user_role  users[]
+}
+
+model department {
+  id              Int       @id @default(autoincrement())
+  department_name String?   @db.NVarChar(255)
+  created_at      DateTime? @default(now())
+  updated_at      DateTime? @default(now())
+  is_active       String?   @default("Y") @db.Char(1)
+  user_department users[]
+}
+
+model agents {
+  id                       Int                        @id @default(autoincrement())
+  first_name               String                     @db.NVarChar(100)
+  last_name                String                     @db.NVarChar(100)
+  email                    String                     @unique @db.NVarChar(255)
+  phone                    String?                    @db.NVarChar(50)
+  role                     String                     @default("Agent") @db.NVarChar(50)
+  department               String?                    @db.NVarChar(100)
+  is_active                Boolean?                   @default(true)
+  hire_date                DateTime?                  @db.Date
+  avatar                   String?                    @db.NVarChar(500)
+  created_at               DateTime?                  @default(now(), map: "DF__Agents__CreatedA__33D4B598")
+  updated_at               DateTime?                  @default(now(), map: "DF__Agents__UpdatedA__34C8D9D1")
+  user_id                  Int?
+  agent_performance        agent_performance[]
+  users                    users?                     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  notification_settings    notification_settings[]
+  support_ticket_responses support_ticket_responses[]
+  ticket_history           ticket_history[]
+  tickets                  tickets[]
+
+  @@index([email])
+  @@index([is_active])
+  @@index([role])
+}
+
+model agent_performance {
+  id                        Int       @id @default(autoincrement())
+  agent_id                  Int
+  period_start              DateTime  @db.Date
+  period_end                DateTime  @db.Date
+  total_tickets             Int?      @default(0)
+  resolved_tickets          Int?      @default(0)
+  avg_resolution_time_hours Decimal?  @default(0) @db.Decimal(10, 2)
+  avg_response_time_minutes Decimal?  @default(0) @db.Decimal(10, 2)
+  sla_compliance_percent    Decimal?  @default(0) @db.Decimal(5, 2)
+  customer_satisfaction_avg Decimal?  @default(0) @db.Decimal(3, 2)
+  calculated_at             DateTime? @default(now(), map: "DF__AgentPerf__Calcu__7F2BE32F")
+  agents                    agents    @relation(fields: [agent_id], references: [id], onUpdate: NoAction)
+
+  @@index([agent_id])
+  @@index([period_start, period_end])
+}
+
+model notification_settings {
+  id                        Int       @id @default(autoincrement())
+  agent_id                  Int
+  email_notifications       Boolean?  @default(true)
+  sla_warnings              Boolean?  @default(true)
+  new_ticket_alerts         Boolean?  @default(true)
+  escalation_alerts         Boolean?  @default(true)
+  customer_feedback_alerts  Boolean?  @default(true)
+  warning_threshold_percent Int?      @default(80)
+  created_at                DateTime? @default(now(), map: "DF__Notificat__Creat__6EF57B66")
+  updated_at                DateTime? @default(now(), map: "DF__Notificat__Updat__6FE99F9F")
+  agents                    agents    @relation(fields: [agent_id], references: [id], onUpdate: NoAction)
+}
+
+model companies {
+  id            Int         @id @default(autoincrement())
+  company_name  String      @db.NVarChar(255)
+  domain        String      @unique @db.NVarChar(100)
+  contact_email String?     @db.NVarChar(255)
+  contact_phone String?     @db.NVarChar(50)
+  address       String?     @db.NVarChar(500)
+  is_active     Boolean?    @default(true)
+  created_at    DateTime?   @default(now(), map: "DF__Companies__Creat__267ABA7A")
+  updated_at    DateTime?   @default(now(), map: "DF__Companies__Updat__276EDEB3")
+  customers     customers[]
+
+  @@index([domain])
+  @@index([is_active])
+}
+
+model customers {
+  id                       Int                        @id @default(autoincrement())
+  company_id               Int
+  first_name               String                     @db.NVarChar(100)
+  last_name                String                     @db.NVarChar(100)
+  email                    String                     @unique @db.NVarChar(255)
+  phone                    String?                    @db.NVarChar(50)
+  job_title                String?                    @db.NVarChar(100)
+  is_active                Boolean?                   @default(true)
+  created_at               DateTime?                  @default(now(), map: "DF__Customers__Creat__2C3393D0")
+  updated_at               DateTime?                  @default(now(), map: "DF__Customers__Updat__2D27B809")
+  companies                companies                  @relation(fields: [company_id], references: [id], onUpdate: NoAction)
+  support_ticket_responses support_ticket_responses[]
+  tickets                  tickets[]
+
+  @@index([company_id])
+  @@index([email])
+  @@index([is_active])
+}
+
+model categories {
+  id            Int       @id @default(autoincrement())
+  category_name String    @db.NVarChar(100)
+  description   String?   @db.NVarChar(500)
+  is_active     Boolean?  @default(true)
+  created_at    DateTime? @default(now(), map: "DF__Categorie__Creat__38996AB5")
+  tickets       tickets[]
+}
+
+model tickets {
+  id                                        Int                        @id @default(autoincrement())
+  ticket_number                             String                     @unique @db.NVarChar(50)
+  customer_id                               Int
+  assigned_agent_id                         Int?
+  category_id                               Int?
+  subject                                   String                     @db.NVarChar(500)
+  description                               String                     @db.NText
+  priority                                  String                     @default("Medium") @db.NVarChar(20)
+  status                                    String                     @default("Open") @db.NVarChar(50)
+  source                                    String?                    @default("Email") @db.NVarChar(50)
+  sla_deadline                              DateTime?
+  sla_status                                String?                    @default("Within") @db.NVarChar(20)
+  first_response_at                         DateTime?
+  resolved_at                               DateTime?
+  closed_at                                 DateTime?
+  assigned_by                               Int?
+  is_merged                                 Boolean?
+  reopen_count                              Int?
+  time_spent_minutes                        Int?                       @default(0)
+  last_reopened_at                          DateTime?
+  customer_satisfaction_rating              Int?
+  customer_feedback                         String?                    @db.NText
+  tags                                      String?                    @db.NVarChar(500)
+  created_at                                DateTime?                  @default(now(), map: "DF__Tickets__Created__49C3F6B7")
+  updated_at                                DateTime?                  @default(now(), map: "DF__Tickets__Updated__4AB81AF0")
+  merged_into_ticket_id                     Int?
+  support_ticket_responses                  support_ticket_responses[]
+  ticket_allocations                        ticket_allocations[]
+  ticket_attachments                        ticket_attachments[]
+  ticket_history                            ticket_history[]
+  ticket_merges_child_ticket_id_to_tickets  ticket_merges[]            @relation("TicketMerges_ChildTicketIDToTickets")
+  ticket_merges_parent_ticket_id_to_tickets ticket_merges[]            @relation("TicketMerges_ParentTicketIDToTickets")
+  ticket_reopens                            ticket_reopens[]
+  users                                     users?                     @relation(fields: [assigned_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  categories                                categories?                @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  customers                                 customers                  @relation(fields: [customer_id], references: [id], onUpdate: NoAction)
+  tickets                                   tickets?                   @relation("TicketsToTickets", fields: [merged_into_ticket_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  other_tickets                             tickets[]                  @relation("TicketsToTickets")
+  agents                                    agents?                    @relation(fields: [agentsId], references: [id])
+  agentsId                                  Int?
+
+  @@index([assigned_agent_id, status])
+  @@index([assigned_agent_id])
+  @@index([created_at(sort: Desc)])
+  @@index([customer_id, status])
+  @@index([customer_id])
+  @@index([priority])
+  @@index([sla_deadline])
+  @@index([sla_status])
+  @@index([status])
+  @@index([status, priority])
+  @@index([ticket_number])
+}
+
+model support_ticket_responses {
+  id                 Int                  @id @default(autoincrement())
+  ticket_id          Int
+  agent_id           Int?
+  customer_id        Int?
+  message            String               @db.NText
+  is_internal        Boolean?             @default(false)
+  is_from_customer   Boolean?             @default(false)
+  created_at         DateTime?            @default(now(), map: "DF__TicketRes__Creat__52593CB8")
+  agents             agents?              @relation(fields: [agent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  customers          customers?           @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tickets            tickets              @relation(fields: [ticket_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  ticket_attachments ticket_attachments[]
+
+  @@index([agent_id])
+  @@index([created_at(sort: Desc)])
+  @@index([is_internal])
+  @@index([ticket_id])
+}
+
+model ticket_history {
+  id         Int       @id @default(autoincrement())
+  ticket_id  Int
+  agent_id   Int?
+  action     String    @db.NVarChar(100)
+  old_value  String?   @db.NVarChar(255)
+  new_value  String?   @db.NVarChar(255)
+  comments   String?   @db.NVarChar(500)
+  created_at DateTime? @default(now(), map: "DF__TicketHis__Creat__5CD6CB2B")
+  agents     agents?   @relation(fields: [agent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tickets    tickets   @relation(fields: [ticket_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([agent_id])
+  @@index([created_at(sort: Desc)])
+  @@index([ticket_id])
+}
+
+model ticket_attachments {
+  id                       Int                       @id @default(autoincrement())
+  ticket_id                Int
+  response_id              Int?
+  file_name                String                    @db.NVarChar(255)
+  original_file_name       String                    @db.NVarChar(255)
+  file_path                String                    @db.NVarChar(500)
+  file_size                BigInt
+  content_type             String                    @db.NVarChar(100)
+  file_hash                String?                   @db.NVarChar(64)
+  uploaded_by              Int
+  uploaded_by_type         String                    @default("User") @db.NVarChar(20)
+  is_public                Boolean?                  @default(false)
+  virus_scanned            Boolean?                  @default(false)
+  scan_result              String?                   @db.NVarChar(50)
+  created_at               DateTime?                 @default(now(), map: "DF__TicketAtt__Creat__17C286CF")
+  support_ticket_responses support_ticket_responses? @relation(fields: [response_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tickets                  tickets                   @relation(fields: [ticket_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                    users                     @relation(fields: [uploaded_by], references: [id], onUpdate: NoAction)
+
+  @@index([file_hash])
+  @@index([ticket_id])
+  @@index([uploaded_by])
+}
+
+model ticket_allocations {
+  id                                             Int       @id @default(autoincrement())
+  ticket_id                                      Int
+  from_user_id                                   Int?
+  to_user_id                                     Int
+  allocated_by                                   Int
+  allocation_reason                              String?   @db.NVarChar(500)
+  allocated_at                                   DateTime? @default(now(), map: "DF__TicketAll__Alloc__1D7B6025")
+  users_ticket_allocations_allocated_by_to_users users     @relation("TicketAllocations_AllocatedByToUsers", fields: [allocated_by], references: [id], onUpdate: NoAction)
+  users_ticket_allocations_from_user_id_to_users users?    @relation("TicketAllocations_FromUserIDToUsers", fields: [from_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tickets                                        tickets   @relation(fields: [ticket_id], references: [id], onUpdate: NoAction)
+  users_ticket_allocations_to_user_id_to_users   users     @relation("TicketAllocations_ToUserIDToUsers", fields: [to_user_id], references: [id], onUpdate: NoAction)
+
+  @@index([ticket_id])
+  @@index([to_user_id])
+}
+
+model ticket_merges {
+  id                                                Int       @id @default(autoincrement())
+  parent_ticket_id                                  Int
+  child_ticket_id                                   Int
+  merged_by                                         Int
+  merge_reason                                      String?   @db.NVarChar(500)
+  merged_at                                         DateTime? @default(now(), map: "DF__TicketMer__Merge__0A688BB1")
+  tickets_ticket_merges_child_ticket_id_to_tickets  tickets   @relation("TicketMerges_ChildTicketIDToTickets", fields: [child_ticket_id], references: [id], onUpdate: NoAction)
+  users                                             users     @relation(fields: [merged_by], references: [id], onUpdate: NoAction)
+  tickets_ticket_merges_parent_ticket_id_to_tickets tickets   @relation("TicketMerges_ParentTicketIDToTickets", fields: [parent_ticket_id], references: [id], onUpdate: NoAction)
+
+  @@index([child_ticket_id])
+  @@index([parent_ticket_id])
+}
+
+model ticket_reopens {
+  id              Int       @id @default(autoincrement())
+  ticket_id       Int
+  reopened_by     Int
+  reopen_reason   String?   @db.NVarChar(500)
+  previous_status String?   @db.NVarChar(50)
+  reopened_at     DateTime? @default(now(), map: "DF__TicketReo__Reope__10216507")
+  users           users     @relation(fields: [reopened_by], references: [id], onUpdate: NoAction)
+  tickets         tickets   @relation(fields: [ticket_id], references: [id], onUpdate: NoAction)
+
+  @@index([reopened_at])
+  @@index([ticket_id])
+}
+
+model sla_configurations {
+  id                    Int       @id @default(autoincrement())
+  priority              String    @db.NVarChar(20)
+  response_time_hours   Int
+  resolution_time_hours Int
+  business_hours_only   Boolean?  @default(false)
+  business_start_time   String?   @default("09:00:00") @db.NVarChar(8)
+  business_end_time     String?   @default("17:00:00") @db.NVarChar(8)
+  include_weekends      Boolean?  @default(false)
+  is_active             Boolean?  @default(true)
+  created_at            DateTime? @default(now())
+  updated_at            DateTime? @default(now())
+}
+
+model system_settings {
+  id            Int       @id @default(autoincrement())
+  setting_key   String    @unique @db.NVarChar(100)
+  setting_value String?
+  description   String?   @db.NVarChar(500)
+  data_type     String?   @default("String") @db.NVarChar(50)
+  created_at    DateTime? @default(now())
+  updated_at    DateTime? @default(now())
+}
+
+model email_configurations {
+  id                 Int       @id @default(autoincrement())
+  smtp_server        String    @db.NVarChar(255)
+  smtp_port          Int       @default(587)
+  username           String    @db.NVarChar(255)
+  password           String    @db.NVarChar(255)
+  enable_tls         Boolean?  @default(true)
+  from_email         String    @db.NVarChar(255)
+  from_name          String    @db.NVarChar(255)
+  auto_reply_enabled Boolean?  @default(true)
+  auto_reply_message String?   @db.NText
+  is_active          Boolean?  @default(true)
+  created_at         DateTime? @default(now())
+  updated_at         DateTime? @default(now())
+}
+
+model email_queue {
+  id            Int       @id @default(autoincrement())
+  to_email      String    @db.NVarChar(255)
+  cc_email      String?   @db.NVarChar(500)
+  bcc_email     String?   @db.NVarChar(500)
+  subject       String    @db.NVarChar(500)
+  body          String    @db.NText
+  is_html       Boolean?  @default(true)
+  priority      Int?      @default(3)
+  status        String?   @default("Pending") @db.NVarChar(20)
+  attempt_count Int?      @default(0)
+  max_attempts  Int?      @default(3)
+  error_message String?
+  scheduled_at  DateTime? @default(now())
+  sent_at       DateTime?
+  created_at    DateTime? @default(now())
+
+  @@index([priority])
+  @@index([scheduled_at])
+  @@index([status])
+}
+
+model audit_log {
+  id         Int       @id @default(autoincrement())
+  table_name String    @db.NVarChar(100)
+  record_id  Int
+  action     String    @db.NVarChar(20)
+  old_values String?   @db.NVarChar(Max)
+  new_values String?   @db.NVarChar(Max)
+  changed_by Int?
+  changed_at DateTime? @default(now())
+  ip_address String?   @db.NVarChar(45)
+  user_agent String?   @db.NVarChar(500)
+
+  @@index([changed_at(sort: Desc)])
+  @@index([changed_by])
+  @@index([table_name, record_id])
+}

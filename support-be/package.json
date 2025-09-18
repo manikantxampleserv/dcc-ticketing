@@ -1,0 +1,59 @@
+{
+  "name": "dcc-ticketing",
+  "version": "1.0.0",
+  "description": "This is back-end of DCC Ticketing System.",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon --exec ts-node -r tsconfig-paths/register src/index.ts",
+    "build": "tsc",
+    "serve": "node dist/index.js",
+    "seed-create": "ts-node prisma/seed.create.ts",
+    "seed-clean": "ts-node prisma/seed.clean.ts",
+    "seed": "ts-node prisma/seed.clean.ts && ts-node prisma/seed.create.ts"
+  },
+  "keywords": [
+    "ts"
+  ],
+  "author": "Mani Kant Sharma",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/backblaze-b2": "^1.5.6",
+    "@types/cookie-parser": "^1.4.9",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/imap": "^0.8.42",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/mailparser": "^3.4.6",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^24.3.0",
+    "@types/node-imap": "^0.9.3",
+    "@types/nodemailer": "^6.4.17",
+    "cross-env": "^7.0.3",
+    "express": "^5.1.0",
+    "prisma": "^6.13.0",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@google/genai": "^1.12.0",
+    "@prisma/client": "^6.13.0",
+    "@types/bcryptjs": "^2.4.6",
+    "backblaze-b2": "^1.7.1",
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.0.1",
+    "express-rate-limit": "^8.0.1",
+    "express-validator": "^7.2.1",
+    "helmet": "^8.1.0",
+    "imap": "^0.8.19",
+    "jsonwebtoken": "^9.0.2",
+    "mailparser": "^3.7.4",
+    "multer": "^2.0.2",
+    "node-imap": "^0.9.6",
+    "nodemailer": "^7.0.5",
+    "nodemon": "^3.1.10",
+    "winston": "^3.17.0"
+  }
+}
